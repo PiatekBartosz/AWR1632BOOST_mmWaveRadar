@@ -17,15 +17,15 @@ First run the ```cfg.py``` file in order to send config and start the device. Th
 ## Config
 The config send to the device depends on the version of SDK flashed to mmWave radar. Paste .cfg file to the cfgs folder and specify the name of the config using option:   
 ```
-$ python cfg.py --cfg AWR1642-SDK<SDK_version>
+$ python3 cfg.py --cfg AWR1642-SDK<SDK_version>
 ```    
 The defalt cfg is for SDK 3.2.0, it will be chosen when not specifying certain config. Similarly the cfg port might be specifed by:
 ```
-$ python cfg.py --port /dev/ttyACM0
+$ python3 cfg.py --port /dev/ttyACM0
 ```
 
 ## Reading data
 To read the data specify data port on your system:
 ```
-$ python data.py --port /dev/ttyACM1
+$ python3 data.py --port /dev/ttyACM1
 ```
