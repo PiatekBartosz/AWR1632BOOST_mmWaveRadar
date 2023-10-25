@@ -1,0 +1,31 @@
+# This repository contains code that interfaces with mmWave AWR1642
+
+## Project overview
+
+The ```cfg.py``` program is reponsible to send config and commands to radar. Config might be obtained using TI Demo Visualizer
+
+The ```data.py``` program reads data from Serial Port -> it receives 2D Point Cloud data from mmWave device whem it is flashed with TI demo from SDK
+
+## Installation
+It is recomended to use conda environment. The environment can be optained from   ```environment.yml``` file using:    
+```
+$ conda <environment_name> create -f environment.yml
+```
+## Run
+First run the ```cfg.py``` file in order to send config and start the device. Then fire up the ```data.py``` to see the data from radar
+
+## Config
+The config send to the device depends on the version of SDK flashed to mmWave radar. Paste .cfg file to the cfgs folder and specify the name of the config using option:   
+```
+$ python cfg.py --cfg AWR1642-SDK<SDK_version>
+```    
+The defalt cfg is for SDK 3.2.0, it will be chosen when not specifying certain config. Similarly the cfg port might be specifed by:
+```
+$ python cfg.py --port /dev/ttyACM0
+```
+
+## Reading data
+To read the data specify data port on your system:
+```
+$ python data.py --port /dev/ttyACM1
+```
