@@ -31,9 +31,9 @@ def handle_serial(args, cfg_commands):
         read_serial(ser)
 
 def read_serial(serial):
-    byteCount = serial.inWaiting()
-    if byteCount > 0:
-        rx = serial.read(byteCount).decode()
+    byte_count = serial.inWaiting()
+    if byte_count > 0:
+        rx = serial.read(byte_count).decode()
         print("Read: ", rx)
         return rx
 
