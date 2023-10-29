@@ -1,6 +1,7 @@
 # This repository contains code that interfaces with mmWave AWR1642
 
 ## Project overview
+# TODO Change README 
 
 The ```cfg.py``` program is reponsible to send config and commands to radar. Config might be obtained using TI Demo Visualizer
 
@@ -23,6 +24,7 @@ The defalt cfg is for SDK 3.2.0, it will be chosen when not specifying certain c
 ```
 $ python3 cfg.py --port /dev/ttyACM0
 ```
+Config can also be send using TI mmWave Demo Visualizer
 
 ## Reading data
 To read the data specify data port on your system:
