@@ -6,22 +6,46 @@ MAGIC_WORD = b'\x02\x01\x04\x03\x06\x05\x08\x07'
 HEADER_SIZE = 40
 
 with open(filename, "rb") as file:
-    data = file.read()
-    magic_word_idx = data.index(MAGIC_WORD)
+    found = False
+    data = b''
+    byte_count = 0
 
-    # if magic word (frame start) is found
-    if magic_word_idx == -1:
-        raise Exception("Magic word not found")
+    # TODO change while True to something with serial
+    while True:
+        byte_of_data = file.read(1)
+        data += byte_of_data
+        byte_count += 1
+        
+        if not found and  MAGIC_WORD in data:
+            magic_word_idx = data.index(MAGIC_WORD)
+            parsed_data = data[magic_word_idx:] 
+            found = True    
+
+            # parse header
+            header = MAGIC_WORD + file.read(HEADER_SIZE - len(MAGIC_WORD))
+            
+            magic_word = header[0:8]
+            version = struct.unpack('<I', header[8:12])[0]
+            total_packet_lenght = struct.unpack('<I', header[12:16])[0]
+            platform = struct.unpack('<I', header[16:20])[0]
+            frame_number = struct.unpack('<I', header[20:24])[0]
+            time_cpu_cycles = struct.unpack('<I', header[24:28])[0]
+            num_of_detected_objects = struct.unpack('<I', header[28:32])[0]            
+            num_of_TLV = struct.unpack('<I', header[32:36])[0]
+            sub_frame_number = struct.unpack('<I', header[36:40])[0]
+
+            # get TVL
+            # for i in range(num_of_TLV):
+
+
+            pass
+
+ 
+        
+
+
+
     
-    # cut data before magic word
-    one_data_frame = data[magic_word_idx:]
-    # "<" stand for little endian and I stands for Integer (32-bit)
-    serial_header = struct.unpack('<I', one_data_frame)
-    # TODO
-
-    # search for packet lenght
-    # get 
-    pass
 
 
 
