@@ -10,7 +10,8 @@ def handle_serial(port):
     while True:
         byte_count = ser.inWaiting()
         encoded_data = ser.read(byte_count)
-        print(encoded_data)
+        if encoded_data != b'':
+            print(encoded_data)
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()

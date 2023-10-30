@@ -19,11 +19,12 @@ def handle_serial(args, cfg_commands):
     print("Using port no.:", args.port)
     ser = serial.Serial(port=args.port, baudrate=CLI_CFG_PORT_BOUDRATE)
 
+    # TODO not working
     # send config:
-    for command in cfg_commands:
-        print("Send: ", command)
-        ser.write(command.encode())
-        read_serial(ser)
+    # for command in cfg_commands:
+    #     print("Send: ", command)
+    #     ser.write(command.encode())
+    #     read_serial(ser)
     
     # let user write commands manually
     while True:
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("-p", "--port", default="/dev/ttyACM0", type=str, 
                             help="Specify serial port used to send cfg to ti mmWave Radar using CLI")
-    arg_parser.add_argument("-c", "--cfg", default="AWR1642-SDK_3_2_0.cfg", type=str,
+    arg_parser.add_argument("-c", "--cfg", default="AWR1642-SDK_2_1_0.cfg", type=str,
                             help="Specify config location")
     args = arg_parser.parse_args()
 
