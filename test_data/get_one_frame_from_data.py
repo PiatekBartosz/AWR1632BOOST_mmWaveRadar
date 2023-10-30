@@ -34,8 +34,14 @@ with open(filename, "rb") as file:
             num_of_TLV = struct.unpack('<I', header[32:36])[0]
             sub_frame_number = struct.unpack('<I', header[36:40])[0]
 
+            # TODO more checks
+            if total_packet_lenght%2 != 0:
+                raise Exception("packet size not devida")
+
             # get TVL
             # for i in range(num_of_TLV):
+                # read TVL part
+
 
 
             pass
