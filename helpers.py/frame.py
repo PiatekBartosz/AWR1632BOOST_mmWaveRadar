@@ -6,20 +6,22 @@
     ---------------
         -Header
     ---------------
-        -Tag1
+        -Type1
         -Len1           TVL
         -Payload1
     ---------------
-        -Tag2
+        -Type2
         -Len2           TVL
         -Payload2
     ---------------
-        -Tag3      
+        -Type3
         -Len3           TVL
         -Payload3
     ---------------
         Padding         x0F
     ---------------
+
+    Types:
         
     The Padding is added so that the total lenght of the frame is mulptile of 32 Bytes
 

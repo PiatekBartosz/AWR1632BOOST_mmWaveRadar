@@ -12,22 +12,44 @@ It is recomended to use conda environment. The environment can be optained from 
 ```
 $ conda <environment_name> create -f environment.yml
 ```
-## Run
-First run the ```cfg.py``` file in order to send config and start the device. Then fire up the ```data.py``` to see the data from radar
 
-## Config
-The config send to the device depends on the version of SDK flashed to mmWave radar. Paste .cfg file to the cfgs folder and specify the name of the config using option:   
-```
-$ python3 cfg.py --cfg AWR1642-SDK<SDK_version>
-```    
-The defalt cfg is for SDK 3.2.0, it will be chosen when not specifying certain config. Similarly the cfg port might be specifed by:
-```
-$ python3 cfg.py --port /dev/ttyACM0
-```
-Config can also be send using TI mmWave Demo Visualizer
+# Data stream
+TLV frames types
+![img.png](img.png)
 
-## Reading data
-To read the data specify data port on your system:
-```
-$ python3 data.py --port /dev/ttyACM1
-```
+
+[//]: # (## Run)
+
+[//]: # (First run the ```cfg.py``` file in order to send config and start the device. Then fire up the ```data.py``` to see the data from radar)
+
+[//]: # ()
+[//]: # (## Config)
+
+[//]: # (The config send to the device depends on the version of SDK flashed to mmWave radar. Paste .cfg file to the cfgs folder and specify the name of the config using option:   )
+
+[//]: # (```)
+
+[//]: # ($ python3 cfg.py --cfg AWR1642-SDK<SDK_version>)
+
+[//]: # (```    )
+
+[//]: # (The defalt cfg is for SDK 3.2.0, it will be chosen when not specifying certain config. Similarly the cfg port might be specifed by:)
+
+[//]: # (```)
+
+[//]: # ($ python3 cfg.py --port /dev/ttyACM0)
+
+[//]: # (```)
+
+[//]: # (Config can also be send using TI mmWave Demo Visualizer)
+
+[//]: # ()
+[//]: # (## Reading data)
+
+[//]: # (To read the data specify data port on your system:)
+
+[//]: # (```)
+
+[//]: # ($ python3 data.py --port /dev/ttyACM1)
+
+[//]: # (```)

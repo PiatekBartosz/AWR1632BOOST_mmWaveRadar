@@ -2,6 +2,18 @@ from multiprocessing import Queue
 import struct
 
 
+
+TLV_types = {
+    1: "DetectedPoints",
+    2: "RangeProfile",
+    3: "NoiseProfile",
+    4: "AzimuthStaticHeatMap",
+    5: "RangeDoppler",
+    6: "Stats",
+    7: "DetectedPointsSideInfo",
+    8: "AzimuthElevationStaticHeatMap",
+    9: "TemperatureStats"
+}
 class Header:
     def __init__(self, magic_word, version, total_packet_length, platform, frame_number,
                  time_cpu_cycles, num_of_detected_objects, num_of_TLV, sub_frame_number) -> None:
@@ -35,11 +47,12 @@ class Frame:
 
 
 class SimualtedSerialPort:
-    FILENAME = "/home/bartek/AGV/AWR1642BOOST_mmWaveRadar/test_data/xwr16xx_processed_stream_2023_10_30T09_00_44_253.dat"
+    FILENAME = "AWR1642_test_data_SDK_3_6_0.dat"
     MAGIC_WORD = b'\x02\x01\x04\x03\x06\x05\x08\x07'
     HEADER_SIZE = 40
     TLV_TYPE_SIZE = 4
     TLV_LENGTH_SIZE = 4
+    TLV_HEADER_SIZE = 8
 
     def __init__(self):
         # create FIFO queue for data stream, it will store parsed data Frames
@@ -63,14 +76,13 @@ class SimualtedSerialPort:
 
                 if not found and self.MAGIC_WORD in data:
                     magic_word_idx = data.index(self.MAGIC_WORD)
-                    parsed_data = data[magic_word_idx:]
+                    header = magic_word = data[magic_word_idx:]
                     found = True
 
                     # parse header
-                    header = self.MAGIC_WORD + file.read(self.HEADER_SIZE - len(self.MAGIC_WORD))
+                    header += file.read(self.HEADER_SIZE - len(self.MAGIC_WORD))
                     byte_count += self.HEADER_SIZE - len(self.MAGIC_WORD)
 
-                    magic_word = header[0:8]
                     version = struct.unpack('<I', header[8:12])[0]
                     total_packet_length = struct.unpack('<I', header[12:16])[0]
                     platform = struct.unpack('<I', header[16:20])[0]
@@ -92,24 +104,31 @@ class SimualtedSerialPort:
                     found = False
 
                     # read rest of the frame
-                    frame_tail = frame.read(total_packet_length - byte_count)
+                    frame_tail = file.read(total_packet_length - self.HEADER_SIZE)
                     byte_count += total_packet_length - byte_count
 
                     # get individual TVL's
                     for i in range(num_of_TLV):
-                        # TODO change for frame_tail
-                        tlv_type_packed = frame_tail[0:4]
+                        # type
+                        tlv_type_packed = frame_tail[0:self.TLV_TYPE_SIZE]
                         tlv_type = struct.unpack('<I', tlv_type_packed)[0]
 
+                        # get type of tlv
                         # TODO decipher type
-                        tlv_length_packed = file.read(self.TLV_LENGTH_SIZE)
-                        tlv_length = tlv_type = struct.unpack('<I', tlv_length_packed)[0]
+                        tlv_length_packed = frame_tail[self.TLV_TYPE_SIZE:self.TLV_HEADER_SIZE]
+                        tlv_length = struct.unpack('<I', tlv_length_packed)[0]
 
-                        tlv_data = file.read(tlv_length)
+                        tlv_data = frame_tail[self.TLV_HEADER_SIZE:(self.TLV_HEADER_SIZE + tlv_length)]
 
+                        # delete already read tlv from frame tail
                         frame.append_tvls(tlv_type, tlv_length, tlv_data)
+                        frame_tail = frame_tail[(self.TLV_HEADER_SIZE + tlv_length):]
 
-                    pass
+                    self.rx_data_queue.put(frame)
+                    found = False
+                    data = b''
+                    byte_count = 0
+
 
 
 if __name__ == "__main__":
