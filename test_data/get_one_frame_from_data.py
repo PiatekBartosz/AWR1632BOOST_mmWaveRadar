@@ -23,16 +23,25 @@ class TLV:
         self.data = data
 
 
+class RawFrame:
+    def __init__(self, header: Header, tail: bytes):
+        self.header = header
+        self.tail = tail
+
+
 class Frame:
     def __init__(self, magic_word, version, total_packet_length, platform, frame_number,
                  time_cpu_cycles, num_of_detected_objects, num_of_TLV, sub_frame_number) -> None:
         self.header = Header(magic_word, version, total_packet_length, platform, frame_number,
                              time_cpu_cycles, num_of_detected_objects, num_of_TLV, sub_frame_number)
         self.tlvs = []
+        self.tail = None
 
     def append_tvls(self, type, length, data):
         self.tlvs.append(TLV(type, length, data))
 
+    def add_tail(self, tail):
+        self.tail = tail
 
 class SimualtedSerialPort:
     FILENAME = "/home/bartek/AGV/AWR1642BOOST_mmWaveRadar/test_data/xwr16xx_processed_stream_2023_10_30T09_00_44_253.dat"
@@ -40,6 +49,7 @@ class SimualtedSerialPort:
     HEADER_SIZE = 40
     TLV_TYPE_SIZE = 4
     TLV_LENGTH_SIZE = 4
+    MAX_PACKET_LEN = 5000
 
     def __init__(self):
         # create FIFO queue for data stream, it will store parsed data Frames
@@ -80,36 +90,52 @@ class SimualtedSerialPort:
                     num_of_TLV = struct.unpack('<I', header[32:36])[0]
                     sub_frame_number = struct.unpack('<I', header[36:40])[0]
 
-                    frame = Frame(magic_word, version, total_packet_length, platform, frame_number,
+                    frame_header = Header(magic_word, version, total_packet_length, platform, frame_number,
                                 time_cpu_cycles, num_of_detected_objects, num_of_TLV, sub_frame_number)
 
                     # TODO more checks
-                    if total_packet_length > 10000:
-                        raise Exception("Exceeded packet length")
+                    if total_packet_length > self.MAX_PACKET_LEN:
+                        raise Exception("Exceeded max packet length")
 
                     if total_packet_length % 32 != 0:
                         raise Exception("Packet size is not a multiple of 32")
                     found = False
 
                     # read rest of the frame
-                    frame_tail = frame.read(total_packet_length - byte_count)
+                    frame_tail = file.read(total_packet_length - byte_count)
                     byte_count += total_packet_length - byte_count
 
-                    # get individual TVL's
-                    for i in range(num_of_TLV):
-                        # TODO change for frame_tail
-                        tlv_type_packed = frame_tail[0:4]
-                        tlv_type = struct.unpack('<I', tlv_type_packed)[0]
+                    raw_frame = RawFrame(frame_header, frame_tail)
+                    self.rx_data_queue.put(raw_frame)
 
-                        # TODO decipher type
-                        tlv_length_packed = file.read(self.TLV_LENGTH_SIZE)
-                        tlv_length = tlv_type = struct.unpack('<I', tlv_length_packed)[0]
+                    data = b''
+                    byte_count = 0
 
-                        tlv_data = file.read(tlv_length)
 
-                        frame.append_tvls(tlv_type, tlv_length, tlv_data)
+                    # # get individual TVL's
+                    # for i in range(num_of_TLV):
+                    #     # TODO change for frame_tail
+                    #     tlv_type_packed = frame_tail[0:4]
+                    #     tlv_type = struct.unpack('<I', tlv_type_packed)[0]
+                    #
+                    #     # TODO decipher type
+                    #     tlv_length_packed = frame_tail[4:8]
+                    #     tlv_length = tlv_type = struct.unpack('<I', tlv_length_packed)[0]
+                    #
+                    #     tlv_data = frame_tail[8:(tlv_length - 8)]
+                    #
+                    #     frame.append_tvls(tlv_type, tlv_length, tlv_data)
+                    #
+                    #     # truncate current tail
+                    #     frame_tail = frame_tail[(tlv_length - 8):]
+                    #
+                    # test = b''
+                    # while True:
+                    #     test += file.read(1)
+                    #     if self.MAGIC_WORD in test:
+                    #         print("found")
+                    #         break
 
-                    pass
 
 
 if __name__ == "__main__":
