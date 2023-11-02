@@ -1,85 +1,44 @@
-"""
-    This class replicates the frame structure used in ti AWR1642demo in python
-
-    TI UART Data Frame Structure
-
-    ---------------
-        -Header
-    ---------------
-        -Type1
-        -Len1           TVL
-        -Payload1
-    ---------------
-        -Type2
-        -Len2           TVL
-        -Payload2
-    ---------------
-        -Type3
-        -Len3           TVL
-        -Payload3
-    ---------------
-        Padding         x0F
-    ---------------
-
-    Types:
-        
-    The Padding is added so that the total lenght of the frame is mulptile of 32 Bytes
-
-   Header stucture:
-    uint16_t    magicWord[4]; -> b'\x02\x01\x04\x03\x06\x05\x08\x07'
-    uint32_t    version; -> 
-    uint32_t    totalPacketLen;
-    uint32_t    platform;
-    uint32_t    frameNumber;
-    uint32_t    timeCpuCycles;
-    uint32_t    numDetectedObj;
-    uint32_t    numTLVs;
-    uint32_t    subFrameNumber;
-
-    ! Little Endian !
-"""
+from multiprocessing import Queue
 import struct
-import os.path
 
+TLV_types = {
+    1: "DetectedPoints",
+    2: "RangeProfile",
+    3: "NoiseProfile",
+    4: "AzimuthStaticHeatMap",
+    5: "RangeDoppler",
+    6: "Stats",
+    7: "DetectedPointsSideInfo",
+    8: "AzimuthElevationStaticHeatMap",
+    9: "TemperatureStats"
+}
 class Header:
-    pass
+    def __init__(self, magic_word, version, total_packet_length, platform, frame_number,
+                 time_cpu_cycles, num_of_detected_objects, num_of_TLV, sub_frame_number) -> None:
+        self.magic_word = magic_word
+        self.version = version
+        self.total_packet_length = total_packet_length
+        self.platform = platform
+        self.frame_number = frame_number
+        self.time_cpu_cycles = time_cpu_cycles
+        self.num_of_detected_objects = num_of_detected_objects
+        self.num_of_TLV = num_of_TLV
+        self.sub_frame_number = sub_frame_number
 
-class TVL:
-    pass
+
+class TLV:
+    def __init__(self, type, length, data) -> None:
+        self.type = TLV_types[type]
+        self.length = length
+        self.data = data
+
+
 class Frame:
+    def __init__(self, magic_word, version, total_packet_length, platform, frame_number,
+                 time_cpu_cycles, num_of_detected_objects, num_of_TLV, sub_frame_number) -> None:
+        self.header = Header(magic_word, version, total_packet_length, platform, frame_number,
+                             time_cpu_cycles, num_of_detected_objects, num_of_TLV, sub_frame_number)
+        self.tlvs = []
 
-    def __init__(self, serial_frame_str) -> None:
-        self.header = None
-        self.tvl = None
-        
-        # parse serial data into header 
-        self.header, self.tvl = self.parse_serial_data(serial_frame_str)
-        pass
-
-    def parse_serial_data(self, serial_frame_str) -> (Header, list[TVL]):
-        # TODO check if data in correct format
-        
-        pass
-
-
-
-class FrameType:
-    pass
-
-# this class opens a binary file with example test data from mmWave radar 
-# and it is used to test the Frame class 
-class TestFrameClass:
-    def __init__(self):
-        self.data = None
-        self.TEST_DATA_FILE_NAME = "/../test_data/xwr16xx_processed_stream_2023_10_30T09_00_44_253.dat"
-        with open(os.path.dirname(__file__) + self.TEST_DATA_FILE_NAME, "r", encoding = "ISO-8859-1") as file:
-            self.data = file.read()
-
-    @staticmethod
-    def test_frame(serial_frame_str):
-        Frame(serial_frame_str)
-
-
-
-t1 = TestFrameClass()
-print(t1.data)
+    def append_tlvs(self, type, length, data):
+        self.tlvs.append(TLV(type, length, data))

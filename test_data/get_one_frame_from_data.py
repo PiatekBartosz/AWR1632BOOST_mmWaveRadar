@@ -28,11 +28,34 @@ class Header:
         self.sub_frame_number = sub_frame_number
 
 
+class TLVData:
+    pass
+
+class DetectedPoint(TLVData):
+    # type 1
+    pass
+
+class RangeProfile(TLVData):
+    # type 2
+    pass
+
+class Stats(TLVData):
+    # type 6
+    pass
+
+class DetectedPointsSideInfo(TLVData):
+    # type 7
+    pass
+
+class TemperatureStats(TLVData):
+    # type 9
+    pass
+
 class TLV:
     def __init__(self, type, length, data) -> None:
         self.type = type
         self.length = length
-        self.data = data
+        self.data = TVL
 
 
 class Frame:
