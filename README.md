@@ -15,7 +15,7 @@ $ conda <environment_name> create -f environment.yml
 
 # Data stream
 TLV frames types
-![img.png](img.png)
+![img.png](docs/TLV_Types.png)
 
 
 [//]: # (## Run)
