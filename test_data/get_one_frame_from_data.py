@@ -1,9 +1,12 @@
-from multiprocessing import Queue
-import struct
-import math
-import codecs
 import binascii
+import codecs
+import math
+import struct
+import threading
+from multiprocessing import Queue
 
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Header:
@@ -29,8 +32,12 @@ class DetectedPoints:
         #     raise Exception("Detected point data wrong size")
         for i in range(num_of_detected_objects):
             raw_data_decoded = codecs.decode(binascii.hexlify(raw_data[0:self.SIZE]), encoding="hex")
+            if raw_data_decoded == b'':
+                break
+
             if len(raw_data_decoded) != 16:
                 raise Exception("Invalid raw data")
+
             elements = struct.unpack("<ffff",raw_data_decoded)
             x = elements[0]
             y = elements[1]
@@ -217,9 +224,17 @@ class Frame:
     def append_tvls(self, type, length, raw_data, num_of_detected_obj):
         self.tlvs.append(TLV(type, length, raw_data, num_of_detected_obj))
 
+    def get_detections(self):
+        if self.tlvs:
+            for tlv in self.tlvs:
+                if tlv.type == 1:
+                    return tlv.value.points
+            return None
+        return None
+
 
 class SimualtedSerialPort:
-    FILENAME = "AWR1642_test_data_SDK_3_6_0.dat"
+    FILENAME = "/home/bartek/AGV/AWR1642BOOST_mmWaveRadar/test_data/AWR1642_test_data_SDK_3_6_0.dat"
     MAGIC_WORD = b'\x02\x01\x04\x03\x06\x05\x08\x07'
     HEADER_SIZE = 40
     TLV_TYPE_SIZE = 4
@@ -249,7 +264,6 @@ class SimualtedSerialPort:
                 if not found and self.MAGIC_WORD in data:
                     magic_word_idx = data.index(self.MAGIC_WORD)
                     header = magic_word = data[magic_word_idx:]
-                    found = True
 
                     # parse header
                     header += file.read(self.HEADER_SIZE - len(self.MAGIC_WORD))
@@ -273,7 +287,6 @@ class SimualtedSerialPort:
 
                     if total_packet_length % 32 != 0:
                         raise Exception("Packet size is not a multiple of 32")
-                    found = False
 
                     # read rest of the frame
                     frame_tail = file.read(total_packet_length - self.HEADER_SIZE)
@@ -295,9 +308,9 @@ class SimualtedSerialPort:
                         # delete already read tlv from frame tail
                         frame.append_tvls(tlv_type, tlv_length, tlv_data, num_of_detected_objects)
                         frame_tail = frame_tail[(self.TLV_HEADER_SIZE + tlv_length):]
+                        found = True
 
                     self.rx_data_queue.put(frame)
-                    found = False
                     data = b''
                     byte_count = 0
 
@@ -305,4 +318,26 @@ class SimualtedSerialPort:
 
 if __name__ == "__main__":
     s = SimualtedSerialPort()
-    s.serial_port_routine()
+    th1 = threading.Thread(target=s.serial_port_routine)
+    th1.start()
+
+    frame = None
+
+    while True:
+        if not s.rx_data_queue.empty():
+            frame = s.rx_data_queue.get()
+            break
+
+    # plot results
+    plt.style.use('_mpl-gallery')
+
+    fig, ax = plt.subplots()
+    data = frame.get_detections()
+    x = np.ndarray((len(data), ))
+    y = np.ndarray((len(data), ))
+    for idx, point in enumerate(data):
+        x[idx] = point['x']
+        y[idx] = point['y']
+    ax.scatter(x, y)
+    ax.set(xlim=(0, x.max() * 2), ylim=(0, y.max() * 2))
+    plt.show()

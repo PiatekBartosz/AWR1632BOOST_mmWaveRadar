@@ -202,7 +202,7 @@ class TLV:
                 self.value = TLV_types[type](raw_data, num_of_detected_obj)
             # for now skip other TLV types
             else:
-                pass
+                self.value = raw_data
         else:
             raise Exception("Frame type not found")
 
@@ -217,3 +217,6 @@ class Frame:
     def append_tvls(self, type, length, raw_data, num_of_detected_obj):
         self.tlvs.append(TLV(type, length, raw_data, num_of_detected_obj))
 
+    # TODO implement det. points
+    def get_detected_points(self):
+        pass

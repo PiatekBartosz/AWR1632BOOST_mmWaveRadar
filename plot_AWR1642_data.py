@@ -1,6 +1,15 @@
 from helpers.serial_interface import SerialInterface
 from argparse import ArgumentParser
 import time
+import signal
+
+serial = None
+
+
+def handler(signum, frame):
+    global serial
+    serial.stop()
+    exit(1)
 
 
 if __name__ == "__main__":
@@ -9,9 +18,13 @@ if __name__ == "__main__":
                             help="Specify serial port used to send cfg to ti mmWave Radar using CLI")
     arg_parser.add_argument("-d", "--data_port", default="/dev/ttyACM1", type=str,
                             help="Specify serial port used to send cfg to ti mmWave Radar using CLI")
-    arg_parser.add_argument("-C", "--cfg", default="AWR1642-SDK_3_2_0.cfg", type=str,
+    arg_parser.add_argument("-C", "--cfg", default="AWR1642-SDK_3_6_0.cfg", type=str,
                             help="Specify config location")
     args = arg_parser.parse_args()
     serial = SerialInterface(args.cfg_port, args.data_port, args.cfg)
     serial.start()
-    time.sleep(10)
+
+    signal.signal(signal.SIGINT, handler)
+
+    while True:
+        time.sleep(0.1)
