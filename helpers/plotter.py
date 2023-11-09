@@ -33,11 +33,11 @@ class DetectionPointsPlotter:
     def show(self):
         plt.show()
 
-
-# Usage:
-v0 = 12
-v02 = 5
-animated_plot = DetectionPointsPlotter(v0, v02)
-animated_plot.show()
+if __name__ == "__main__":
+    # Usage:
+    v0 = 12
+    v02 = 5
+    animated_plot = DetectionPointsPlotter(v0, v02)
+    animated_plot.show()
 
 

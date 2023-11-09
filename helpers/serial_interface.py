@@ -1,11 +1,35 @@
+import threading
 import serial
 import time
-from threading import Thread
 from .frame import Frame
 from multiprocessing import Queue
 import os
 import struct
 
+
+class ArrayWithMutex:
+    """
+        This class implements a FIFO Queue with mutex
+    """
+    def __init__(self):
+        self._queue = []
+        self.lock = threading.Lock()
+
+    def pop_all(self) -> list:
+        with self.lock:
+            temp_data = self._queue
+            self._queue = []
+            return temp_data
+
+    def push(self, item):
+        with self.lock:
+            self._queue.append(item)
+
+    def empty(self) -> bool:
+        return self._queue == []
+
+    def len(self) -> int:
+        return len(self._queue)
 
 class SerialInterface:
     CFG_BOUDRATE = 115200
@@ -42,12 +66,12 @@ class SerialInterface:
         self.cfg_rx = Queue()
         self.cfg_tx = Queue()
 
-        self.data_rx = Queue()
+        self.data_rx = ArrayWithMutex()
         self.data_tx = Queue()
 
         # spawn processes to handle serial ports
-        self.cfg_thread = Thread(target=self.cfg_uart_threadroutine)
-        self.data_thread = Thread(target=self.data_uart_threadroutine)
+        self.cfg_thread = threading.Thread(target=self.cfg_uart_threadroutine)
+        self.data_thread = threading.Thread(target=self.data_uart_threadroutine)
 
     def cfg_uart_threadroutine(self):
         while self.serial_enable:
@@ -87,7 +111,6 @@ class SerialInterface:
                 self.sensor_started = True
             print("Cfg send data: ", data.decode(), end='')
 
-
     def _read_from_data(self):
         found = False
         data = b""
@@ -124,20 +147,34 @@ class SerialInterface:
                     raise Exception("Packet size is not a multiple of 32")
                     found = False
 
+                # TODO check if works properly
                 # read rest of the frame
-                frame_tail = self.data_serial.read(total_packet_length - self.HEADER_SIZE)
+                frame_tail = b''
+                while frame_tail == b'':
+                    frame_tail = self.data_serial.read(total_packet_length - self.HEADER_SIZE - len(frame_tail))
                 byte_count += total_packet_length - byte_count
 
                 # get individual TVL's
                 for i in range(num_of_TLV):
+                    # TODO find a way to deal with not long enough data
                     # type
                     tlv_type_packed = frame_tail[0:self.TLV_TYPE_SIZE]
-                    tlv_type = struct.unpack('<I', tlv_type_packed)[0]
+                    if tlv_type_packed == b'':
+                        continue
+                    try:
+                        tlv_type = struct.unpack('<I', tlv_type_packed)[0]
+                    except Exception as e:
+                        print(e)
 
                     # get type of tlv
                     # TODO decipher type
                     tlv_length_packed = frame_tail[self.TLV_TYPE_SIZE:self.TLV_HEADER_SIZE]
-                    tlv_length = struct.unpack('<I', tlv_length_packed)[0]
+                    if tlv_length_packed == b'':
+                        continue
+                    try:
+                        tlv_length = struct.unpack('<I', tlv_length_packed)[0]
+                    except Exception as e:
+                        pass
 
                     tlv_data = frame_tail[self.TLV_HEADER_SIZE:(self.TLV_HEADER_SIZE + tlv_length)]
 
@@ -145,7 +182,7 @@ class SerialInterface:
                     frame.append_tvls(tlv_type, tlv_length, tlv_data, num_of_detected_objects)
                     frame_tail = frame_tail[(self.TLV_HEADER_SIZE + tlv_length):]
 
-                self.data_rx.put(frame)
+                self.data_rx.push(frame)
                 found = False
                 data = b''
                 byte_count = 0

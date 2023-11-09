@@ -1,9 +1,11 @@
+from helpers.frame import TLV_types
 from helpers.serial_interface import SerialInterface
 from argparse import ArgumentParser
 import time
 import signal
 import numpy as np
 from helpers.plotter import DetectionPointsPlotter
+from sys import getsizeof
 
 serial = None
 
@@ -28,12 +30,29 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, handler)
 
+    new_time = 0
+    prev_time = 0
+
+
     while True:
         if serial.data_rx.empty():
             continue
         else:
-            frame = serial.data_rx.get()
-            print(frame.tlvs)
+            # print(serial.data_rx.len())
+            frames = serial.data_rx.pop_all()
+            for frame in frames:
+                # check if type of TVL is DetectionPoint
+                if frame.tlvs[0].type == 1:
+                    points = frame.tlvs[0].value.points
+                    for point in points:
+                        # print(point["x"])
+                        # print(point["y"])
+                        continue
+            new_time = time.time()
+            print("FPS:", str(int(1/(new_time - prev_time))))
+            prev_time = new_time
+
+
 
     # detection_plotter = DetectionPointsPlotter(12, 5)
     # detection_plotter.show()
