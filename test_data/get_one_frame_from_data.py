@@ -321,23 +321,23 @@ if __name__ == "__main__":
     th1 = threading.Thread(target=s.serial_port_routine)
     th1.start()
 
-    frame = None
-
-    while True:
-        if not s.rx_data_queue.empty():
-            frame = s.rx_data_queue.get()
-            break
-
-    # plot results
-    plt.style.use('_mpl-gallery')
-
-    fig, ax = plt.subplots()
-    data = frame.get_detections()
-    x = np.ndarray((len(data), ))
-    y = np.ndarray((len(data), ))
-    for idx, point in enumerate(data):
-        x[idx] = point['x']
-        y[idx] = point['y']
-    ax.scatter(x, y)
-    ax.set(xlim=(0, x.max() * 2), ylim=(0, y.max() * 2))
-    plt.show()
+#     frame = None
+# `
+#     while True:
+#         if not s.rx_data_queue.empty():
+#             frame = s.rx_data_queue.get()
+#             break
+#
+#     # plot results
+#     plt.style.use('_mpl-gallery')
+#
+#     fig, ax = plt.subplots()
+#     data = frame.get_detections()
+#     x = np.ndarray((len(data), ))
+#     y = np.ndarray((len(data), ))
+#     for idx, point in enumerate(data):
+#         x[idx] = point['x']
+#         y[idx] = point['y']
+#     ax.scatter(x, y)
+#     ax.set(xlim=(0, x.max() * 2), ylim=(0, y.max() * 2))
+#     plt.show()
