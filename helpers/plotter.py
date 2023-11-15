@@ -14,7 +14,7 @@ class RealTimeDataPlotter:
         self.data_queue = data_queue
 
         # Set up plot to call animate() function periodically
-        self.ani = animation.FuncAnimation(self.fig, self.animate, interval=1000, fargs=(self.xs, self.ys))
+        self.ani = animation.FuncAnimation(self.fig, self.animate, interval=20, fargs=(self.xs, self.ys), cache_frame_data=False)
 
     def animate(self, i, xs, ys):
         try:
@@ -24,11 +24,12 @@ class RealTimeDataPlotter:
                 raise Exception("Real Time Data Plotter read wrong data type from data_rx_queue") 
 
             # TODO finish
-            points = frame.tlvs[0]
+            points = frame.tlvs[0].value.points
 
-            # Add x and y to lists
-            xs.append(random_x)
-            ys.append(random_y)
+            for point in points:
+                # Add x and y to lists
+                xs.append(point["x"])
+                ys.append(point["y"])
 
             # Limit x and y lists to 20 items
             xs = xs[-20:]
@@ -41,10 +42,12 @@ class RealTimeDataPlotter:
             # Format plot
             plt.xticks(rotation=45, ha='right')
             plt.subplots_adjust(bottom=0.30)
-            plt.title('Random Scatter Plot')
+            plt.title('Detection Points Scatter Plot')
             plt.xlabel('X-axis')
             plt.ylabel('Y-axis')
-
+            plt.xlim([-5, 5])
+            plt.ylim([0, 10])
+        
         except queue.Empty:
             pass
 

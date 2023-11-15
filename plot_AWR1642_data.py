@@ -33,9 +33,6 @@ if __name__ == "__main__":
     new_time = 0
     prev_time = 0
 
-    # TODO change later the sleep
-    time.sleep(10)
-
     data_plotter = RealTimeDataPlotter(serial.data_rx)
     data_plotter.show()
 
