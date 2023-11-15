@@ -4,9 +4,8 @@ import matplotlib.animation as animation
 import random
 import queue
 import threading
-from .frame import Frame
 
-class RealTimeDataPlotter:
+class RandomScatterPlot:
     def __init__(self, data_queue):
         self.fig, self.ax = plt.subplots()
         self.xs = []
@@ -19,12 +18,7 @@ class RealTimeDataPlotter:
     def animate(self, i, xs, ys):
         try:
             # Get random coordinates from the queue
-            frame = self.data_queue.get_nowait()
-            if not isinstance(frame, Frame):
-                raise Exception("Real Time Data Plotter read wrong data type from data_rx_queue") 
-
-            # TODO finish
-            points = frame.tlvs[0]
+            random_x, random_y = self.data_queue.get_nowait()
 
             # Add x and y to lists
             xs.append(random_x)
@@ -51,29 +45,28 @@ class RealTimeDataPlotter:
     def show(self):
         plt.show()
 
-# def data_generator(data_queue):
-#     while True:
-#         # Generate random coordinates
-#         random_x = random.random()
-#         random_y = random.random()
+def data_generator(data_queue):
+    while True:
+        # Generate random coordinates
+        random_x = random.random()
+        random_y = random.random()
 
-#         # Put the data in the queue
-#         data_queue.put((random_x, random_y))
+        # Put the data in the queue
+        data_queue.put((random_x, random_y))
 
-#         # Pause for 1 second to simulate the interval
-#         threading.Event().wait(1)
+        # Pause for 1 second to simulate the interval
+        threading.Event().wait(1)
 
-# # used only for testing
-# if __name__ == "__main__":
-#     # Create a synchronized queue
-#     synchronized_queue = queue.Queue()
+if __name__ == "__main__":
+    # Create a synchronized queue
+    synchronized_queue = queue.Queue()
 
-#     # Start the data generator thread
-#     data_generator_thread = threading.Thread(target=data_generator, args=(synchronized_queue,), daemon=True)
-#     data_generator_thread.start()
+    # Start the data generator thread
+    data_generator_thread = threading.Thread(target=data_generator, args=(synchronized_queue,), daemon=True)
+    data_generator_thread.start()
 
-#     # Create an instance of the RandomScatterPlot class with the synchronized queue
-#     random_plotter = RealTimeDataPlotter(synchronized_queue)
+    # Create an instance of the RandomScatterPlot class with the synchronized queue
+    random_plotter = RandomScatterPlot(synchronized_queue)
 
-#     # Show the plot
-#     random_plotter.show()
+    # Show the plot
+    random_plotter.show()

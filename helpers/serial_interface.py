@@ -2,34 +2,11 @@ import threading
 import serial
 import time
 from .frame import Frame
-from multiprocessing import Queue
+from queue import Queue
 import os
 import struct
 
 
-class ArrayWithMutex:
-    """
-        This class implements a FIFO Queue with mutex
-    """
-    def __init__(self):
-        self._queue = []
-        self.lock = threading.Lock()
-
-    def pop_all(self) -> list:
-        with self.lock:
-            temp_data = self._queue
-            self._queue = []
-            return temp_data
-
-    def push(self, item):
-        with self.lock:
-            self._queue.append(item)
-
-    def empty(self) -> bool:
-        return self._queue == []
-
-    def len(self) -> int:
-        return len(self._queue)
 
 class SerialInterface:
     CFG_BOUDRATE = 115200
@@ -66,7 +43,7 @@ class SerialInterface:
         self.cfg_rx = Queue()
         self.cfg_tx = Queue()
 
-        self.data_rx = ArrayWithMutex()
+        self.data_rx = Queue()
         self.data_tx = Queue()
 
         # spawn processes to handle serial ports
@@ -182,7 +159,7 @@ class SerialInterface:
                     frame.append_tvls(tlv_type, tlv_length, tlv_data, num_of_detected_objects)
                     frame_tail = frame_tail[(self.TLV_HEADER_SIZE + tlv_length):]
 
-                self.data_rx.push(frame)
+                self.data_rx.put(frame)
                 found = False
                 data = b''
                 byte_count = 0

@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 import time
 import signal
 import numpy as np
-from helpers.plotter import DetectionPointsPlotter
+from helpers.plotter import RealTimeDataPlotter 
 from sys import getsizeof
 
 serial = None
@@ -33,34 +33,30 @@ if __name__ == "__main__":
     new_time = 0
     prev_time = 0
 
+    # TODO change later the sleep
+    time.sleep(10)
 
-    while True:
-        if serial.data_rx.empty():
-            continue
-        else:
-            # print(serial.data_rx.len())
-            frames = serial.data_rx.pop_all()
-            for frame in frames:
-                # check if type of TVL is DetectionPoint
-                if frame.tlvs[0].type == 1:
-                    points = frame.tlvs[0].value.points
-                    for point in points:
-                        # print(point["x"])
-                        # print(point["y"])
-                        continue
-            new_time = time.time()
-            print("FPS:", str(int(1/(new_time - prev_time))))
-            prev_time = new_time
+    data_plotter = RealTimeDataPlotter(serial.data_rx)
+    data_plotter.show()
 
-
-
-    # detection_plotter = DetectionPointsPlotter(12, 5)
-    # detection_plotter.show()
+    # while True:
+    #     # print(serial.data_rx.len())
+    #     frames = serial.data_rx.dequeue_all()
+    #     for frame in frames:
+    #         # check if type of TVL is DetectionPoint
+    #         if frame.tlvs[0].type == 1:
+    #             points = frame.tlvs[0].value.points
+    #             for point in points:
+    #                 print(point["x"])
+    #                 print(point["y"])
+    #                 continue
+    #         new_time = time.time()
+    #         print("FPS:", str(int(1/(new_time - prev_time))))
+    #         prev_time = new_time
 
 
 
 
-    # # plot results
     # plt.style.use('_mpl-gallery')
     # plt.ion()
     #
